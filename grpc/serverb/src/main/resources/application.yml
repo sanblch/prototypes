@@ -1,0 +1,7 @@
+grpc:
+  server:
+    port: 8889
+    security:
+      enabled: true
+      certificate-chain: server.crt
+      private-key: server.key

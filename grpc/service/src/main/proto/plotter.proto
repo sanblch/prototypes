@@ -1,0 +1,75 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "org.example.proto";
+option java_outer_classname = "GMAuthProto";
+option objc_class_prefix = "HLW";
+
+package geomech;
+
+service ProjectService {
+  rpc getToken (TokenRequest) returns (TokenResponse) {}
+  rpc getByProject (DataRequest) returns (DataResponse) {}
+  rpc upsertDataObject (DataResponse) returns (DataObjectResponse) {}
+  rpc removeDataObject (DataRequest) returns (DataObjectResponse) {}
+  rpc getObject (GetObjectRequest) returns (GetObjectResponse) {}
+  rpc putObject (PutObjectRequest) returns (PutObjectResponse) {}
+  rpc getObjectStream (GetObjectRequest) returns (stream GetObjectResponse) {}
+  rpc putObjectStream (stream PutObjectRequest) returns (PutObjectResponse) {}
+  // api to explicitly notify server that client closes project
+  // for project-lock implementation
+  rpc closeProject(DataRequest) returns (DataObjectResponse) {}
+}
+
+message TokenRequest {
+  string login = 1;
+  string password = 2;
+}
+
+message TokenResponse {
+  string token = 1;
+  string error = 2;
+}
+
+message DataRequest {
+  string uuid = 1;
+}
+
+message DataResponse {
+  repeated DataObject data = 1;
+}
+
+message DataObject {
+  string name = 1;
+  string uuid = 2;
+  string type = 3;
+  string path = 4;
+  string meta = 5;
+  string parent = 6;
+  string project = 7;
+}
+
+message DataObjectResponse {
+  bool done = 1;
+  string error = 2;
+}
+
+message GetObjectRequest {
+  string path = 1;
+}
+
+message GetObjectResponse {
+  bytes data = 1;
+  uint32 size = 2;
+}
+
+message PutObjectRequest {
+  string path = 1;
+  bytes data = 2;
+  uint32 size = 3;
+}
+
+message PutObjectResponse {
+  bool done = 1;
+  string error = 2;
+}
