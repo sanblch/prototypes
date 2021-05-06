@@ -1,0 +1,20 @@
+<html>
+    <head>
+        <script src="http://10.90.137.182:8080/auth/js/keycloak.js"></script>
+    </head>
+    <body>
+        <script>
+             const keycloak = new Keycloak('/keycloak.json');
+             keycloak.init({onLoad: 'login-required'}).success((authenticated) => {
+                 if(!authenticated) {
+                     window.location.reload()
+                 }
+                 var text = document.createTextNode("Hello, world!");
+                 document.body.appendChild(text);
+             }).error(() => {
+                 var text = document.createTextNode("Authentication failed");
+                 document.body.appendChild(text);
+             });
+        </script>
+    </body>
+</html>
