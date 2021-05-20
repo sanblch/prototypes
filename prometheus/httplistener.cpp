@@ -1,0 +1,72 @@
+#include "httplistener.h"
+#include <spdlog/spdlog.h>
+#include <functional>
+
+HttpListenerImpl::HttpListenerImpl(
+                                   std::shared_ptr<Context> context,
+                                   Configuration listener_config,
+                                   SessionImpl::Configuration session_config)
+  : context_{std::move(context)},
+    config_{std::move(listener_config)},
+    session_config_{session_config} {
+}
+
+bool HttpListenerImpl::prepare() {
+  try {
+    acceptor_ = std::make_unique<Acceptor>(*context_, config_.endpoint);
+    spdlog::trace("Acceptor created successfully!");
+  } catch (const boost::wrapexcept<boost::system::system_error> &exception) {
+    spdlog::critical("Failed to prepare a listener: {}", exception.what());
+    return false;
+  } catch (const std::exception &exception) {
+    spdlog::critical("Exception when preparing a listener: {}",
+                      exception.what());
+    return false;
+  }
+
+  boost::system::error_code ec;
+  acceptor_->set_option(boost::asio::socket_base::reuse_address(true), ec);
+  if (ec) {
+    spdlog::error("Failed to set `reuse address` option to acceptor");
+    return false;
+  }
+  return true;
+}
+
+bool HttpListenerImpl::start() {
+  BOOST_ASSERT(acceptor_);
+
+  if (!acceptor_->is_open()) {
+    spdlog::error("error: trying to start on non opened acceptor");
+    return false;
+  }
+
+  acceptOnce();
+  return true;
+}
+
+void HttpListenerImpl::stop() {
+  if (acceptor_) {
+    acceptor_->cancel();
+  }
+}
+
+void HttpListenerImpl::acceptOnce() {
+  new_session_ = std::make_shared<SessionImpl>(*context_, session_config_);
+  new_session_->connectOnRequest(std::bind(&Handler::onSessionRequest, handler_.get(), std::placeholders::_1, std::placeholders::_2));
+
+  auto on_accept = [wp = weak_from_this()](boost::system::error_code ec) {
+    if (auto self = wp.lock()) {
+      if (not ec) {
+        self->new_session_->start();
+      }
+
+      if (self->acceptor_->is_open()) {
+        // continue to accept until acceptor is ready
+        self->acceptOnce();
+      }
+    }
+  };
+
+  acceptor_->async_accept(new_session_->socket(), std::move(on_accept));
+}
