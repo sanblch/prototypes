@@ -4,7 +4,9 @@
 #include <boost/property_tree/json_parser.hpp>
 #include <spdlog/spdlog.h>
 
+#include "common/hexutil.hpp"
 #include "common/outcome.hpp"
+#include "trie/trie.hpp"
 
 namespace chainspec {
 enum class ChainSpecError;
@@ -38,7 +40,8 @@ outcome::result<std::decay_t<T>> ensure(std::string_view entry_name,
 
 } // namespace
 
-inline outcome::result<void> loadFrom(const std::string &path) {
+inline outcome::result<void> loadFrom(const std::string &path,
+                                      trie::Trie &trie) {
   pt::ptree tree;
   try {
     pt::read_json(path, tree);
@@ -65,8 +68,12 @@ inline outcome::result<void> loadFrom(const std::string &path) {
   }
 
   for (const auto &[key, value] : top_tree) {
-    spdlog::info("Key {} : value {}", key, value.data());
+    OUTCOME_TRY(key_processed, kagome::common::unhexWith0x(key));
+    OUTCOME_TRY(value_processed, kagome::common::unhexWith0x(value.data()));
+    trie.put(kagome::common::Buffer(key_processed),
+             kagome::common::Buffer(value_processed));
   }
+  spdlog::info("Genesis data placed to trie.");
 
   return outcome::success();
 }

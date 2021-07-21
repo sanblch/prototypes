@@ -43,6 +43,7 @@ add_executable(cppdot
   scale/scale_error.cpp
   scale/scale_error.hpp
   scale/types.hpp
+  trie/trie.hpp
   )
 
 target_include_directories(cppdot PUBLIC
