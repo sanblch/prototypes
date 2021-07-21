@@ -9,13 +9,47 @@ project(cppdot)
 
 include(packages)
 
+find_package(Boost CONFIG REQUIRED)
+find_package(Microsoft.GSL CONFIG REQUIRED)
 find_package(RocksDB CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 
 add_executable(cppdot
+  chainspec.cpp
+  chainspec.hpp
+  common/blob.cpp
+  common/blob.hpp
+  common/buffer.cpp
+  common/buffer.hpp
+  common/hexutil.cpp
+  common/hexutil.hpp
+  common/outcome.hpp
+  common/outcome-register.hpp
+  common/outcome_throw.hpp
+  common/unused.hpp
+  macro/unreachable.hpp
   main.cpp
+  primitives/block_header.hpp
+  primitives/common.hpp
+  primitives/compact_integer.hpp
+  primitives/digest.hpp
+  scale/compact_len_utils.hpp
+  scale/detail/fixed_width_integer.hpp
+  scale/scale.hpp
+  scale/scale_decoder_stream.cpp
+  scale/scale_decoder_stream.hpp
+  scale/scale_encoder_stream.cpp
+  scale/scale_encoder_stream.hpp
+  scale/scale_error.cpp
+  scale/scale_error.hpp
+  scale/types.hpp
   )
 
+target_include_directories(cppdot PUBLIC
+  ${CMAKE_CURRENT_SOURCE_DIR})
+
 target_link_libraries(cppdot
+  Boost::Boost
+  Microsoft.GSL::Microsoft.GSL
   RocksDB::RocksDB
   spdlog::spdlog)

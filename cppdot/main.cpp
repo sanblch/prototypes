@@ -1,7 +1,13 @@
+#include <boost/algorithm/hex.hpp>
 #include <cstdlib>
 #include <iomanip>
 #include <rocksdb/db.h>
 #include <spdlog/spdlog.h>
+
+#include "chainspec.hpp"
+#include "common/buffer.hpp"
+#include "primitives/block_header.hpp"
+#include "scale/scale.hpp"
 
 namespace meta_keys {
 const char *TYPE = "type";
@@ -39,6 +45,13 @@ std::string hex(const std::string &str) {
   return res.str();
 }
 
+std::string unhex(const std::string_view &strv) {
+  std::string res;
+  res.reserve(strv.size() / 2);
+  boost::algorithm::unhex(strv.begin(), strv.end(), std::back_inserter(res));
+  return res;
+}
+
 int main() {
   rocksdb::DB *db;
   rocksdb::Options options;
@@ -69,19 +82,29 @@ int main() {
   rocksdb::ReadOptions roptions;
   roptions.verify_checksums = false;
   auto it = db->NewIterator(
-      roptions, column_handles[static_cast<uint32_t>(Columns::HEADER)]);
+      roptions, column_handles[static_cast<uint32_t>(Columns::BODY)]);
   unsigned count = 0;
-  for (it->SeekToFirst(); it->Valid(), count < 10; it->Next(), count++) {
+  for (it->SeekToFirst(); it->Valid(), count < 20; it->Next(), count++) {
+    spdlog::info("{}", hex(std::string(it->key().data(), it->key().size())));
     spdlog::info("{}",
-                 hex(std::string(it->key().data(), it->key().size())));
-    spdlog::info("{}", hex(std::string(it->value().data(), it->value().size())));
+                 hex(std::string(it->value().data(), it->value().size())));
     spdlog::info("{}", it->value().size());
   }
+  rocksdb::Slice key = unhex("00560e3b");
+  rocksdb::ReadOptions roptions2;
+  auto it2 = db->NewIterator(
+      roptions2, column_handles[static_cast<uint32_t>(Columns::HEADER)]);
+  it2->Seek(key);
   std::string value;
-  spdlog::info("{}", db->KeyMayExist(
-                         roptions,
-                         column_handles[static_cast<uint32_t>(Columns::HEADER)],
-                         rocksdb::Slice("0000000000000000"), &value));
+  db->Get(roptions, column_handles[static_cast<uint32_t>(Columns::BODY)],
+          it2->value(), &value);
+  kagome::common::Buffer buf;
+  buf.put(value);
+  spdlog::info("{}", hex(value));
+  outcome::result<kagome::primitives::BlockHeader> res =
+      kagome::scale::decode<kagome::primitives::BlockHeader>(
+          gsl::make_span(buf.data(), buf.size()));
+  spdlog::info("{}", res.value().number);
   // std::string* value = nullptr;
   // status = db->Get(rocksdb::ReadOptions(),
   //         column_handles[static_cast<uint32_t>(Columns::META)],
@@ -89,8 +112,13 @@ int main() {
   // if (!status.ok()) {
   //   spdlog::error("DB error: {}", status.ToString());
   // }
-  spdlog::info("Key: {}, size: {}", value, value.size());
+  spdlog::info("{}", hex(std::string(it2->key().data(), it2->key().size())));
+  spdlog::info("{}",
+               hex(std::string(it2->value().data(), it2->value().size())));
+  // spdlog::info("Key: {}, size: {}", value, value.size());
+  chainspec::loadFrom("localchain.json");
   delete it;
+  delete it2;
   for (auto c : column_handles)
     delete c;
   delete db;

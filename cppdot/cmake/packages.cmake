@@ -8,6 +8,8 @@ conan_cmake_run(
   PROFILE ${CONAN_PROFILE}
   SETTINGS build_type=${CMAKE_BUILD_TYPE}
   REQUIRES
+    boost/1.76.0
+    ms-gsl/3.1.0
     rocksdb/6.20.3
     spdlog/1.8.5
   OPTIONS
