@@ -13,6 +13,7 @@ find_package(Boost CONFIG REQUIRED)
 find_package(Microsoft.GSL CONFIG REQUIRED)
 find_package(RocksDB CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
+find_package(zstd CONFIG REQUIRED)
 
 add_executable(cppdot
   chainspec.cpp
@@ -53,4 +54,5 @@ target_link_libraries(cppdot
   Boost::Boost
   Microsoft.GSL::Microsoft.GSL
   RocksDB::RocksDB
-  spdlog::spdlog)
+  spdlog::spdlog
+  zstd::zstd)

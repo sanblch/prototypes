@@ -117,7 +117,7 @@ int main() {
                hex(std::string(it2->value().data(), it2->value().size())));
   // spdlog::info("Key: {}, size: {}", value, value.size());
   trie::Trie trie;
-  chainspec::loadFrom("localchain.json", trie);
+  chainspec::loadFrom("localchain-dev.json", trie);
   delete it;
   delete it2;
   for (auto c : column_handles)

@@ -12,6 +12,7 @@ conan_cmake_run(
     ms-gsl/3.1.0
     rocksdb/6.20.3
     spdlog/1.8.5
+    zstd/1.5.0
   OPTIONS
     rocksdb:with_snappy=True
   GENERATORS cmake_find_package_multi

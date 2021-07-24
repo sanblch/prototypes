@@ -2,7 +2,9 @@
 #define CHAIN_SPEC_HPP
 
 #include <boost/property_tree/json_parser.hpp>
+#include <gsl/span_ext>
 #include <spdlog/spdlog.h>
+#include <zstd.h>
 
 #include "common/hexutil.hpp"
 #include "common/outcome.hpp"
@@ -24,6 +26,10 @@ enum class ChainSpecError {
   PARSER_ERROR,
   NOT_IMPLEMENTED
 };
+
+// constexpr uint8_t kZstdPrefix[8] = {82, 188, 83, 118, 70, 219, 142, 5};
+constexpr uint8_t kZstdPrefix[8] = {0x52, 0xBC, 0x53, 0x76, 0x46, 0xDB, 0x8E, 0x05};
+constexpr size_t kCodeBlobBombLimit = 50 * 1024 * 1024;
 
 namespace {
 
@@ -70,6 +76,23 @@ inline outcome::result<void> loadFrom(const std::string &path,
   for (const auto &[key, value] : top_tree) {
     OUTCOME_TRY(key_processed, kagome::common::unhexWith0x(key));
     OUTCOME_TRY(value_processed, kagome::common::unhexWith0x(value.data()));
+    if (kagome::common::Buffer(key_processed) ==
+        kagome::common::Buffer().put(":code")) {
+      spdlog::info(
+          kagome::common::hex_lower(gsl::make_span(value_processed.data(), 8)));
+      if (std::equal(value_processed.begin(), value_processed.begin() + 7,
+                     std::begin(kZstdPrefix))) {
+        std::vector<uint8_t> rBuff;
+        rBuff.resize(kCodeBlobBombLimit);
+        auto dSize = ZSTD_decompress(rBuff.data(), kCodeBlobBombLimit,
+                                     value_processed.data() + 8,
+                                     value_processed.size() - 8);
+        rBuff.resize(dSize);
+        trie.put(kagome::common::Buffer(key_processed), kagome::common::Buffer(rBuff));
+        spdlog::info("Genesis decompressed data placed to trie.");
+        return outcome::success();
+      }
+    }
     trie.put(kagome::common::Buffer(key_processed),
              kagome::common::Buffer(value_processed));
   }
