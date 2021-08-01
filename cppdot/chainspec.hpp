@@ -80,7 +80,7 @@ inline outcome::result<void> loadFrom(const std::string &path,
         kagome::common::Buffer().put(":code")) {
       spdlog::info(
           kagome::common::hex_lower(gsl::make_span(value_processed.data(), 8)));
-      if (std::equal(value_processed.begin(), value_processed.begin() + 7,
+      if (std::equal(value_processed.begin(), value_processed.begin() + 8,
                      std::begin(kZstdPrefix))) {
         std::vector<uint8_t> rBuff;
         rBuff.resize(kCodeBlobBombLimit);
@@ -97,6 +97,12 @@ inline outcome::result<void> loadFrom(const std::string &path,
              kagome::common::Buffer(value_processed));
   }
   spdlog::info("Genesis data placed to trie.");
+
+  kagome::common::Buffer babe({'b', 'a', 'b', 'e'});
+  kagome::common::Buffer res(ZSTD_compressBound(babe.size()), 0);
+  auto cSize = ZSTD_compress(res.data(), res.size(), babe.data(), babe.size(), 1);
+  res.resize(cSize);
+  spdlog::info(res.toHex());
 
   return outcome::success();
 }

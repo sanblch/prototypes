@@ -1,0 +1,4 @@
+[submodule "cppdot/binaryen"]
+	path = cppdot/binaryen
+	url = git@github.com:soramitsu/binaryen.git
+	branch = version_101

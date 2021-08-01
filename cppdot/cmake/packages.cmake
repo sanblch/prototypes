@@ -9,9 +9,11 @@ conan_cmake_run(
   SETTINGS build_type=${CMAKE_BUILD_TYPE}
   REQUIRES
     boost/1.76.0
+    gtest/1.11.0
     ms-gsl/3.1.0
     rocksdb/6.20.3
     spdlog/1.8.5
+    xxhash/0.8.0
     zstd/1.5.0
   OPTIONS
     rocksdb:with_snappy=True

@@ -3,6 +3,8 @@
 
 #include <map>
 
+#include <spdlog/spdlog.h>
+
 #include "common/buffer.hpp"
 
 namespace trie {
@@ -14,6 +16,14 @@ public:
   void put(const kagome::common::Buffer &key,
            const kagome::common::Buffer &value) {
     data_[key] = value;
+  }
+
+  kagome::common::Buffer* get(const kagome::common::Buffer& key) {
+    if(auto it = data_.find(key); it != data_.end()) {
+      return &it->second;
+    }
+    spdlog::info("Not found");
+    return nullptr;
   }
 };
 

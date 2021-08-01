@@ -10,12 +10,14 @@ project(cppdot)
 include(packages)
 
 find_package(Boost CONFIG REQUIRED)
+find_package(GTest CONFIG REQUIRED)
 find_package(Microsoft.GSL CONFIG REQUIRED)
 find_package(RocksDB CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
+find_package(xxHash CONFIG REQUIRED)
 find_package(zstd CONFIG REQUIRED)
 
-add_executable(cppdot
+add_library(cppdot
   chainspec.cpp
   chainspec.hpp
   common/blob.cpp
@@ -29,7 +31,7 @@ add_executable(cppdot
   common/outcome_throw.hpp
   common/unused.hpp
   macro/unreachable.hpp
-  main.cpp
+  primitives/babe_configuration.hpp
   primitives/block_header.hpp
   primitives/common.hpp
   primitives/compact_integer.hpp
@@ -56,3 +58,10 @@ target_link_libraries(cppdot
   RocksDB::RocksDB
   spdlog::spdlog
   zstd::zstd)
+
+add_executable(cppdot_exe main.cpp)
+target_link_libraries(cppdot_exe cppdot)
+
+set(BUILD_STATIC_LIB ON)
+add_subdirectory(binaryen)
+add_subdirectory(test)
