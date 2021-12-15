@@ -17,3 +17,42 @@ target_link_libraries(wasm-test
   GTest::gtest
   xxHash::xxHash)
 gtest_discover_tests(wasm-test)
+
+add_executable(wasmedge-test
+  wasmedge.cpp
+  )
+target_link_libraries(wasmedge-test
+  cppdot
+  GTest::gtest
+  WasmEdge::WasmEdge
+  xxHash::xxHash)
+gtest_discover_tests(wasmedge-test)
+
+add_executable(wasmedge-exe
+  test_wasmedge.cpp
+  )
+
+target_include_directories(wasmedge-exe PUBLIC
+  ${CMAKE_CURRENT_SOURCE_DIR})
+
+target_link_libraries(wasmedge-exe
+  cppdot
+  spdlog::spdlog
+  WasmEdge::WasmEdge)
+
+add_executable(wasmedge-comp-test
+  test_wasmedge_comp.cpp
+  )
+
+target_link_libraries(wasmedge-comp-test
+  WasmEdge::WasmEdge)
+
+
+add_executable(wasmedge-host-test
+  test_wasmedge_host.cpp
+  )
+
+target_link_libraries(wasmedge-host-test
+  WasmEdge::WasmEdge)
+
+add_executable(fast_test test.cpp)

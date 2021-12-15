@@ -13,6 +13,7 @@ conan_cmake_run(
     ms-gsl/3.1.0
     rocksdb/6.20.3
     spdlog/1.8.5
+    WasmEdge/0.8.1@sanblch/stable
     xxhash/0.8.0
     zstd/1.5.0
   OPTIONS

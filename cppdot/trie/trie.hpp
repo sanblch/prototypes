@@ -16,6 +16,7 @@ public:
   void put(const kagome::common::Buffer &key,
            const kagome::common::Buffer &value) {
     data_[key] = value;
+    // spdlog::info("{}", key.toHex());
   }
 
   kagome::common::Buffer* get(const kagome::common::Buffer& key) {
